@@ -1,0 +1,204 @@
+"""
+Model Training Script for URL Phishing Detection
+Trains multiple ML models and evaluates their performance
+"""
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+import pickle
+import os
+from feature_extraction import URLFeatureExtractor
+
+def load_dataset(filepath='dataset/urls.csv'):
+    """
+    Load the URL dataset from CSV file
+    
+    Args:
+        filepath (str): Path to the dataset file
+        
+    Returns:
+        pandas.DataFrame: Loaded dataset
+    """
+    print(f"Loading dataset from {filepath}...")
+    df = pd.read_csv(filepath)
+    print(f"Dataset loaded: {len(df)} URLs")
+    print(f"  - Legitimate: {len(df[df['label'] == 0])}")
+    print(f"  - Phishing: {len(df[df['label'] == 1])}")
+    return df
+
+def extract_features_from_dataset(df):
+    """
+    Extract features from all URLs in the dataset
+    
+    Args:
+        df (pandas.DataFrame): Dataset with 'url' and 'label' columns
+        
+    Returns:
+        tuple: (X, y) feature matrix and labels
+    """
+    print("
+Extracting features from URLs...")
+    extractor = URLFeatureExtractor()
+    
+    # Extract features for each URL
+    features_list = []
+    for url in df['url']:
+        features = extractor.extract_features(url)
+        features_list.append(features)
+    
+    # Convert to DataFrame
+    X = pd.DataFrame(features_list)
+    y = df['label'].values
+    
+    print(f"Features extracted: {X.shape[1]} features per URL")
+    print(f"Feature names: {list(X.columns)}")
+    
+    return X, y
+
+def train_and_evaluate_model(model, model_name, X_train, X_test, y_train, y_test):
+    """
+    Train a model and evaluate its performance
+    
+    Args:
+        model: Scikit-learn model instance
+        model_name (str): Name of the model for display
+        X_train, X_test: Training and test features
+        y_train, y_test: Training and test labels
+        
+    Returns:
+        trained model
+    """
+    print(f"
+{'='*60}")
+    print(f"Training {model_name}...")
+    print(f"{'='*60}")
+    
+    # Train the model
+    model.fit(X_train, y_train)
+    
+    # Make predictions
+    y_pred = model.predict(X_test)
+    
+    # Calculate metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    
+    # Display results
+    print(f"
+{model_name} Performance:")
+    print(f"  Accuracy:  {accuracy:.4f} ({accuracy*100:.2f}%)")
+    print(f"  Precision: {precision:.4f} ({precision*100:.2f}%)")
+    print(f"  Recall:    {recall:.4f} ({recall*100:.2f}%)")
+    print(f"  F1-Score:  {f1:.4f} ({f1*100:.2f}%)")
+    
+    # Confusion Matrix
+    cm = confusion_matrix(y_test, y_pred)
+    print(f"
+Confusion Matrix:")
+    print(f"                 Predicted")
+    print(f"                 Leg  Phish")
+    print(f"  Actual Leg     {cm[0][0]:3d}   {cm[0][1]:3d}")
+    print(f"         Phish   {cm[1][0]:3d}   {cm[1][1]:3d}")
+    
+    return model
+
+def save_model(model, scaler, filename):
+    """
+    Save trained model and scaler to disk
+    
+    Args:
+        model: Trained model
+        scaler: Fitted scaler
+        filename (str): Name for the saved file
+    """
+    # Create models directory if it doesn't exist
+    os.makedirs('models', exist_ok=True)
+    
+    filepath = f'models/{filename}'
+    with open(filepath, 'wb') as f:
+        pickle.dump({'model': model, 'scaler': scaler}, f)
+    print(f"
+Model saved to {filepath}")
+
+def main():
+    """Main training pipeline"""
+    
+    print("="*60)
+    print("URL PHISHING DETECTION - MODEL TRAINING")
+    print("="*60)
+    
+    # Step 1: Load dataset
+    df = load_dataset('dataset/urls.csv')
+    
+    # Step 2: Extract features
+    X, y = extract_features_from_dataset(df)
+    
+    # Step 3: Split data into training and testing sets
+    # 80% training, 20% testing
+    print("
+Splitting data into train (80%) and test (20%) sets...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    print(f"Training samples: {len(X_train)}")
+    print(f"Testing samples: {len(X_test)}")
+    
+    # Step 4: Feature scaling
+    # Standardize features for better model performance
+    print("
+Scaling features...")
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    # Step 5: Train multiple models
+    
+    # Model 1: Logistic Regression
+    # Simple, fast, and interpretable baseline model
+    lr_model = LogisticRegression(random_state=42, max_iter=1000)
+    lr_model = train_and_evaluate_model(
+        lr_model, "Logistic Regression",
+        X_train_scaled, X_test_scaled, y_train, y_test
+    )
+    save_model(lr_model, scaler, 'logistic_regression.pkl')
+    
+    # Model 2: Random Forest
+    # Ensemble method that usually performs well
+    rf_model = RandomForestClassifier(
+        n_estimators=100,  # Number of trees
+        random_state=42,
+        max_depth=10
+    )
+    rf_model = train_and_evaluate_model(
+        rf_model, "Random Forest",
+        X_train_scaled, X_test_scaled, y_train, y_test
+    )
+    save_model(rf_model, scaler, 'random_forest.pkl')
+    
+    # Model 3: Support Vector Machine
+    # Good for non-linear classification
+    svm_model = SVC(kernel='rbf', random_state=42)
+    svm_model = train_and_evaluate_model(
+        svm_model, "Support Vector Machine (SVM)",
+        X_train_scaled, X_test_scaled, y_train, y_test
+    )
+    save_model(svm_model, scaler, 'svm.pkl')
+    
+    print("
+" + "="*60)
+    print("TRAINING COMPLETE!")
+    print("="*60)
+    print("
+All models have been trained and saved to the 'models/' directory")
+    print("You can now use predict.py to test URLs")
+
+if __name__ == "__main__":
+    main()

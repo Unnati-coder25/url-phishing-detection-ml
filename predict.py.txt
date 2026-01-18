@@ -1,0 +1,149 @@
+"""
+Prediction Script for URL Phishing Detection
+Load trained models and predict if a URL is phishing or legitimate
+"""
+
+import pickle
+import pandas as pd
+from feature_extraction import URLFeatureExtractor
+
+def load_model(model_path):
+    """
+    Load a trained model and scaler from disk
+    
+    Args:
+        model_path (str): Path to the saved model file
+        
+    Returns:
+        tuple: (model, scaler)
+    """
+    with open(model_path, 'rb') as f:
+        data = pickle.load(f)
+    return data['model'], data['scaler']
+
+def predict_url(url, model, scaler, extractor):
+    """
+    Predict if a URL is phishing or legitimate
+    
+    Args:
+        url (str): URL to check
+        model: Trained ML model
+        scaler: Fitted scaler
+        extractor: URLFeatureExtractor instance
+        
+    Returns:
+        tuple: (prediction, probability)
+    """
+    # Extract features from URL
+    features = extractor.extract_features(url)
+    features_df = pd.DataFrame([features])
+    
+    # Scale features
+    features_scaled = scaler.transform(features_df)
+    
+    # Make prediction
+    prediction = model.predict(features_scaled)[0]
+    
+    # Get probability if available
+    if hasattr(model, 'predict_proba'):
+        probability = model.predict_proba(features_scaled)[0]
+        confidence = max(probability) * 100
+    else:
+        confidence = None
+    
+    return prediction, confidence
+
+def display_prediction(url, prediction, confidence, model_name):
+    """
+    Display prediction results in a formatted way
+    
+    Args:
+        url (str): The URL that was checked
+        prediction (int): 0 for legitimate, 1 for phishing
+        confidence (float): Confidence percentage
+        model_name (str): Name of the model used
+    """
+    print("
+" + "="*60)
+    print(f"URL: {url}")
+    print("="*60)
+    
+    if prediction == 0:
+        print("✓ LEGITIMATE URL")
+        print("This URL appears to be safe.")
+    else:
+        print("⚠ PHISHING URL DETECTED!")
+        print("This URL appears to be malicious. Do not click!")
+    
+    if confidence:
+        print(f"Confidence: {confidence:.2f}%")
+    
+    print(f"Model: {model_name}")
+    print("="*60)
+
+def main():
+    """Main prediction pipeline"""
+    
+    print("="*60)
+    print("URL PHISHING DETECTION - PREDICTION")
+    print("="*60)
+    
+    # Initialize feature extractor
+    extractor = URLFeatureExtractor()
+    
+    # Load the Random Forest model (usually best performing)
+    print("
+Loading trained model...")
+    try:
+        model, scaler = load_model('models/random_forest.pkl')
+        model_name = "Random Forest"
+        print("Model loaded successfully!")
+    except FileNotFoundError:
+        print("Error: Model file not found!")
+        print("Please run train_model.py first to train the models.")
+        return
+    
+    # Interactive prediction loop
+    print("
+Enter URLs to check (or 'quit' to exit)")
+    print("-" * 60)
+    
+    # Some test URLs for demonstration
+    test_urls = [
+        "https://www.google.com",
+        "http://secure-paypal-login.000webhostapp.com",
+        "http://192.168.1.1/facebook-login"
+    ]
+    
+    print("
+Testing with sample URLs first:")
+    for url in test_urls:
+        prediction, confidence = predict_url(url, model, scaler, extractor)
+        display_prediction(url, prediction, confidence, model_name)
+    
+    # Interactive mode
+    print("
+
+Now you can test your own URLs:")
+    while True:
+        url = input("
+Enter URL (or 'quit' to exit): ").strip()
+        
+        if url.lower() == 'quit':
+            print("
+Thank you for using URL Phishing Detection!")
+            break
+        
+        if not url:
+            print("Please enter a valid URL.")
+            continue
+        
+        # Make prediction
+        try:
+            prediction, confidence = predict_url(url, model, scaler, extractor)
+            display_prediction(url, prediction, confidence, model_name)
+        except Exception as e:
+            print(f"Error processing URL: {e}")
+
+if __name__ == "__main__":
+    main()
