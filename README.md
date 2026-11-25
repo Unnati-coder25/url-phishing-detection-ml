@@ -1,100 +1,184 @@
-# URL Phishing Detection System
 
-## Problem Statement
-Phishing attacks are one of the most common cyber threats where attackers create fake websites to steal sensitive information. This project builds a machine learning system to automatically detect phishing URLs by analyzing their characteristics.
+# 🔐 AI-Based URL Phishing Detection System
 
-## Dataset
-The system uses a labeled dataset of URLs containing:
-- **Legitimate URLs**: Real websites from trusted sources
-- **Phishing URLs**: Known malicious URLs from phishing databases
+**Machine Learning | Cybersecurity | Python | URL Analysis**
 
-Sample dataset is included in `dataset/urls.csv`
+## 📌 Project Overview
 
-## Features Extracted
-The system extracts the following features from each URL:
+This project implements a Machine Learning-based system to detect phishing and malicious URLs by analyzing their structural and lexical characteristics.
 
-1. **URL Length**: Total number of characters
-2. **Number of Dots**: Count of '.' in URL
-3. **Has @ Symbol**: Presence of '@' (often used in phishing)
-4. **Has Dash**: Presence of '-' in domain
-5. **Has Double Slash**: '//' in path (suspicious redirects)
-6. **Uses HTTPS**: Whether URL uses secure protocol
-7. **Number of Subdomains**: Count of subdomains
-8. **Suspicious Keywords**: Presence of words like 'secure', 'account', 'login'
-9. **Has IP Address**: Whether URL uses IP instead of domain
-10. **Digit Ratio**: Proportion of digits in URL
+The system extracts relevant URL-based features and uses Machine Learning classification algorithms to distinguish between phishing and legitimate URLs.
 
-## Machine Learning Approach
+## 🎯 Problem Statement
 
-### Models Used:
-1. **Logistic Regression**: Simple, interpretable baseline model
-2. **Random Forest**: Ensemble method for better accuracy
-3. **Support Vector Machine (SVM)**: Non-linear classification
+Phishing attacks are one of the most common cybersecurity threats, where attackers create fraudulent URLs and websites to trick users into revealing sensitive information.
 
-### Pipeline:
-1. Data Loading → 2. Feature Extraction → 3. Train-Test Split → 4. Model Training → 5. Evaluation → 6. Prediction
+This project aims to develop an automated phishing detection system that analyzes URL characteristics and classifies suspicious links using Machine Learning techniques.
 
-## Project Structure
-```
-phishing-detection/
+## 🛠️ Technologies Used
+
+- **Programming Language:** Python
+- **Libraries:** Pandas, NumPy
+- **Machine Learning:** Scikit-learn
+- **Algorithms:** Logistic Regression, Random Forest, Support Vector Machine (SVM)
+- **Development Environment:** Jupyter Notebook
+
+## 📊 Dataset
+
+The project uses a labeled URL dataset containing two categories:
+
+- **Legitimate URLs:** URLs associated with genuine websites.
+- **Phishing URLs:** URLs identified as potentially malicious.
+
+### Classification Labels
+
+- `1` – Phishing
+- `0` – Legitimate
+
+**Dataset File:** `dataset/urls.csv`
+
+## 🔍 Feature Extraction
+
+The system analyzes URL characteristics to identify suspicious patterns.
+
+The following features are extracted:
+
+| No. | Feature | Description |
+|---|---|---|
+| 1 | URL Length | Total number of characters in the URL |
+| 2 | Number of Dots | Counts dots present in the URL |
+| 3 | @ Symbol | Checks for the presence of @ |
+| 4 | Dash | Identifies hyphens in the domain |
+| 5 | Double Slash | Checks for double-slash patterns |
+| 6 | HTTPS | Identifies whether the URL uses HTTPS |
+| 7 | Subdomains | Counts the number of subdomains |
+| 8 | Suspicious Keywords | Detects keywords such as login, secure and account |
+| 9 | IP Address | Checks whether an IP address is used instead of a domain |
+| 10 | Digit Ratio | Calculates the proportion of numerical characters |
+
+## 🤖 Machine Learning Algorithms
+
+### 1. Logistic Regression
+
+- Used as a baseline classification algorithm.
+- Predicts phishing and legitimate URLs using extracted features.
+
+### 2. Random Forest
+
+- Uses an ensemble of decision trees.
+- Helps identify complex relationships between URL features.
+
+### 3. Support Vector Machine (SVM)
+
+- Performs classification by identifying decision boundaries between URL categories.
+
+## ⚙️ Project Workflow
+
+1. Dataset Collection
+2. Data Preprocessing
+3. URL Feature Extraction
+4. Feature Preparation
+5. Train-Test Splitting
+6. Machine Learning Model Training
+7. Model Evaluation
+8. URL Classification
+
+## 📁 Project Structure
+
+```text
+url-phishing-detection-ml/
 │
 ├── dataset/
-│   └── urls.csv              # Sample dataset
+│   └── urls.csv
 │
-├── feature_extraction.py      # Feature engineering functions
-├── train_model.py            # Model training script
-├── predict.py                # Prediction script
-├── models/                   # Saved trained models
-└── README.md                 # This file
+├── models/
+│   └── trained models
+│
+├── feature_extraction.py
+├── train_model.py
+├── predict.py
+├── requirements.txt
+└── README.md
 ```
 
-## Installation
+## 💻 Installation
 
-### Prerequisites:
+### Step 1: Clone the Repository
+
 ```bash
-pip install pandas numpy scikit-learn
+git clone https://github.com/Unnati-coder25/url-phishing-detection-ml.git
 ```
 
-## How to Run
+### Step 2: Navigate to the Project Directory
 
-### Step 1: Prepare Dataset
-Ensure `dataset/urls.csv` exists with columns: `url,label`
-- label: 1 for phishing, 0 for legitimate
+```bash
+cd url-phishing-detection-ml
+```
 
-### Step 2: Train Models
+### Step 3: Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## ▶️ How to Run
+
+### Step 1: Prepare the Dataset
+
+Ensure the dataset is available in the appropriate directory with the required URL and label columns.
+
+### Step 2: Train the Machine Learning Models
+
 ```bash
 python train_model.py
 ```
-This will:
-- Extract features from URLs
-- Train 3 ML models
-- Display accuracy, precision, recall, F1-score
-- Save models to `models/` directory
+
+This step performs data preprocessing, feature extraction, model training and evaluation.
 
 ### Step 3: Make Predictions
+
 ```bash
 python predict.py
 ```
-Enter a URL to check if it's phishing or legitimate.
 
-## Results
-Expected performance on test set:
-- **Logistic Regression**: ~85-90% accuracy
-- **Random Forest**: ~90-95% accuracy
-- **SVM**: ~88-93% accuracy
+Enter a URL to check whether it is classified as phishing or legitimate.
 
-## Key Learnings
-- Feature engineering is crucial for ML success
-- Ensemble methods (Random Forest) often outperform single models
-- URL patterns are strong indicators of phishing attempts
+## 📈 Model Evaluation
 
-## Future Improvements
-- Add more features (domain age, SSL certificate info)
-- Try deep learning models
-- Build web interface for real-time detection
-- Integrate with browser extension
+The models are evaluated using standard classification metrics:
 
-## References
-- Phishing Database: PhishTank, OpenPhish
-- Scikit-learn Documentation
-- Feature Engineering for Cybersecurity
+- Accuracy
+- Precision
+- Recall
+- F1-Score
+- Confusion Matrix
+
+Evaluation graphs and classification reports can be included in the `results/` directory.
+
+## 🔮 Future Enhancements
+
+- Integration with real-time phishing URL detection.
+- Improved URL and domain-based feature extraction.
+- Development of a Flask-based web application.
+- Integration with external threat intelligence sources.
+- Exploration of advanced Machine Learning and Deep Learning techniques.
+- Browser extension for suspicious URL detection.
+
+## 📚 References
+
+- [PhishTank](https://phishtank.org/)
+- [OpenPhish](https://openphish.com/)
+- [Scikit-learn Documentation](https://scikit-learn.org/)
+- [Pandas Documentation](https://pandas.pydata.org/)
+
+## 👩‍💻 Author
+
+**Unnati Pandit**
+
+
+
+- [GitHub Profile](https://github.com/Unnati-coder25)
+
+---
+
+*Exploring the intersection of Artificial Intelligence, Machine Learning and Cybersecurity.*
